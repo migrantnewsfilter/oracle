@@ -3,9 +3,8 @@ from toolz import assoc
 import schedule
 from pymongo import MongoClient, UpdateOne
 from textblob import TextBlob
-import cPickle
-import os
-import time
+import cPickle, os, time, math
+
 
 def split_into_tokens(text):
     #split a message into its individual words
@@ -47,10 +46,12 @@ def make_prediction(item):
     except KeyError:
         return None
 
-def predict_item(item):
-    prediction = make_prediction(item)
-    return assoc(item, 'prediction', prediction)
+def normalize_prediction(prediction):
+    return int(math.floor(prediction*10))
 
+def predict_item(item):
+    prediction = normalize_prediction(make_prediction(item))
+    return assoc(item, 'prediction', prediction)
 
 def write_predictions():
     client = MongoClient(

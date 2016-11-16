@@ -1,8 +1,6 @@
-FROM scivm/scientific-python-2.7
+FROM python:2-onbuild
 
 ADD . /oracle
-
-RUN pip install -r /oracle/requirements.txt
 
 RUN python -m textblob.download_corpora
 
