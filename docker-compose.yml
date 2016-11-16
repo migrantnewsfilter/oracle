@@ -9,7 +9,7 @@ services:
       MONGO_HOST: mongodb://mongo:27017
       FLASK_DEBUG: 1
     volumes:
-      - .:/oracle
+      - .:/usr/src/app
   mongo:
     image: mongo:latest
     volumes:

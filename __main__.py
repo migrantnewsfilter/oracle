@@ -92,7 +92,6 @@ def write_predictions():
 
 
 if __name__ == '__main__':
-
     # write once on startup
     write_predictions()
 
@@ -103,5 +102,3 @@ if __name__ == '__main__':
     while True:
         schedule.run_pending()
         time.sleep(10)
-
-    run()
