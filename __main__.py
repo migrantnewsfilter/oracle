@@ -6,35 +6,9 @@ from textblob import TextBlob
 import cPickle, os, time, math
 import boto3
 
-
-def split_into_tokens(text):
-    #split a message into its individual words
-    #text = unicode(text, 'utf8') - convert bytes into proper unicode - does not work because already unicode
-    return TextBlob(text).words
-
-
-def remove_stop_words(text):
-    #remove stop words
-    en_stop = get_stop_words('en')
-    #sp_stop = get_stop_words('Spanish')
-    return [word for word in text if word not in en_stop]
-
-
-def split_into_lemmas(text):
-    #normalize words into their base form (lemmas)
-    text = text.lower()
-    words = TextBlob(text).words
-    # for each word, take its "base form" = lemma
-    return [word.lemma for word in words]
-
-
-
-
-
 def chunk(n, it):
     src = iter(it)
     return takewhile(bool, (list(islice(src, n)) for _ in count(0)))
-
 
 def get_unlabelled(client):
     collection = client['newsfilter'].news
