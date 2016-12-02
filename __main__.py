@@ -2,9 +2,10 @@ from itertools import islice, takewhile, count
 from toolz import assoc
 import schedule
 from pymongo import MongoClient, UpdateOne
-from textblob import TextBlob
 import cPickle, os, time, math
 import boto3
+from modelling.models import get_labelled_articles, create_model
+from lib.clustering import cluster_updates
 
 def chunk(n, it):
     src = iter(it)
@@ -28,19 +29,11 @@ def predict_item(item, model):
     prediction = normalize_prediction(make_prediction(item, model))
     return assoc(item, 'prediction', prediction)
 
-def get_model(aws_client):
-
-    # Get the latest model from our bucket
-    try:
-        objects = aws_client.list_objects(Bucket = 'migrantnews-app-models')['Contents']
-        newest = reduce(lambda a,b: a if a['LastModified'] > b['LastModified'] else b, objects)
-    except KeyError as e:
-        raise Exception('Could not find a model!', e)
-
-    # read and unpickle the model!
-    obj = aws_client.get_object(Bucket = 'migrantnews-app-models', Key=newest.get('Key'))
-    return cPickle.loads(obj['Body'].read())
-
+def get_model(client):
+    l = get_labelled_articles(client)
+    labels = map(lambda x: x['label'], l)
+    bodies = map(lambda x: x['content']['body'], l)
+    return create_model(bodies, labels)
 
 def write_predictions():
     client = MongoClient(
@@ -49,11 +42,10 @@ def write_predictions():
     collection = client['newsfilter'].news
     unlabelled = get_unlabelled(client)
 
-    aws_client = boto3.client('s3')
-    model = get_model(aws_client)
+    model = get_model(client)
 
     predicted = (predict_item(item, model) for item in unlabelled)
-    chunked = chunk(20, predicted)
+    chunked = chunk(200, predicted)
 
     for c in chunked:
         print 'ORACLE: writing predictions to DB'
@@ -64,13 +56,28 @@ def write_predictions():
 
     client.close()
 
+def write_clusters():
+    client = MongoClient(
+        host = os.environ.get('MONGO_HOST') or None
+    )
+    collection = client['newsfilter'].news
+
+    updates = cluster_updates(client)
+    chunked = chunk(200, updates)
+    for c in chunked:
+        print 'ORACLE: writing clusters to DB'
+        collection.bulk_write(c, ordered = False)
+    client.close()
+
 
 if __name__ == '__main__':
     # write once on startup
     write_predictions()
+    write_clusters()
 
     # schedule to run again
     schedule.every(5).minutes.do(write_predictions)
+    schedule.every(30).minutes.do(write_predictions)
 
     # run the scheduler!
     while True:

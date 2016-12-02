@@ -1,28 +1,29 @@
-from pymongo import MongoClient
-from sklearn.feature_extraction.text import CountVectorizer
-from sklearn.cluster import DBSCAN
+from modelling.clustering import dbscan, get_all_tweets, get_all_articles
+from pymongo import MongoClient, UpdateOne
 
-def get_articles_by_source(src = '', label = ''):
-    client = MongoClient()
-    collection = client['newsfilter'].news #news - is new one
-    cursor = collection.find({ '_id': {'$regex': src }, 'label': {'$regex': label}})
-    return list(cursor)
+A_PREFIX = 10000
+T_PREFIX = 20000
 
-def get_all_articles():
-    real = get_articles_by_source('ge')
-    fake = get_articles_by_source('fa')
-    return real + fake
+def cluster_items(items):
+    bodies = map(lambda x: x['content'].get('body'), items)
+    return dbscan(bodies, 3)
 
-def get_all_tweets():
-    tweets = get_articles_by_source('tw')
-    return tweets
+def make_cluster_number(num, prefix):
+    return 0 if num == -1 else num + prefix
 
-def dbscan(data, epsilon):
-    vector = CountVectorizer(
-        stop_words='english',
-        ngram_range=(2,3)
-    ).fit_transform(data)
+def make_cluster_updates(items, clusters, prefix):
+    zipped = zip(items, clusters)
+    print zipped[0:10]
+    requests = [ UpdateOne({ '_id': item['_id']},
+                           {'$set': { 'cluster': make_cluster_number(c, prefix) }})
+                 for item, c in zipped]
+    return requests
 
-    db = DBSCAN(eps=epsilon, min_samples=2)
-    fit = db.fit_predict(vector)
-    return fit
+def cluster_updates(client):
+    tweets = get_all_tweets(client)
+    articles = get_all_articles(client)
+
+    tw_updates = make_cluster_updates(tweets, cluster_items(tweets), T_PREFIX)
+    art_updates = make_cluster_updates(articles, cluster_items(articles), A_PREFIX)
+
+    return tw_updates + art_updates
