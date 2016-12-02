@@ -1,12 +1,17 @@
+beautifulsoup4==4.5.1
 boto3==1.4.1
 botocore==1.4.73
 docutils==0.12
 futures==3.0.5
+html5lib==0.999999999
 jmespath==0.9.0
+-e git://github.com/migrantnewsfilter/Modelling@639cf3f5188c7fe2ff1672c64da511f893f58d2a#egg=modelling
 nltk==3.2.1
 numpy==1.11.2
-pymongo==3.3.1
+pandas==0.19.1
+pymongo==3.4.0
 python-dateutil==2.6.0
+pytz==2016.7
 s3transfer==0.1.9
 schedule==0.3.2
 scikit-learn==0.18.1
@@ -15,3 +20,4 @@ six==1.10.0
 sklearn==0.0
 textblob==0.11.1
 toolz==0.8.0
+webencodings==0.5
