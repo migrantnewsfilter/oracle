@@ -1,6 +1,5 @@
 from itertools import islice, takewhile, count
 from toolz import assoc
-import schedule
 from pymongo import MongoClient, UpdateOne
 import cPickle, os, time, math
 import boto3
@@ -69,17 +68,6 @@ def write_clusters():
         collection.bulk_write(c, ordered = False)
     client.close()
 
-
 if __name__ == '__main__':
-    # write once on startup
     write_predictions()
     write_clusters()
-
-    # schedule to run again
-    schedule.every(5).minutes.do(write_predictions)
-    schedule.every(30).minutes.do(write_predictions)
-
-    # run the scheduler!
-    while True:
-        schedule.run_pending()
-        time.sleep(10)
