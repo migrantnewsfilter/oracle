@@ -6,6 +6,14 @@ from modelling.models import create_model
 from modelling.utils import get_articles
 from clustering import cluster_updates
 
+# TODO: cleanup and make propper logging ini config!
+import logging
+logger = logging.getLogger()
+ch = logging.StreamHandler()
+ch.setLevel(logging.INFO)
+logger.addHandler(ch)
+
+
 def chunk(n, it):
     src = iter(it)
     return takewhile(bool, (list(islice(src, n)) for _ in count(0)))
@@ -35,8 +43,8 @@ def write_predictions(collection):
     # If we can't make a model, don't write any predictions
     try:
         model = get_model(collection)
-    except ValueError as e:
-        print e
+    except Exception:
+        logger.exception("Error creating model for predictions.")
         return
 
     predicted = (predict_item(item, model) for item in unlabelled)
