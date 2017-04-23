@@ -1,11 +1,21 @@
-from modelling.clustering import dbscan, get_all_tweets, get_all_articles
-from pymongo import MongoClient, UpdateOne
+from pymongo import UpdateOne
+from modelling.clustering import dbscan
+from modelling.utils import get_articles
 
 A_PREFIX = 10000
 T_PREFIX = 20000
 
+def get_bodies(article):
+    try:
+        return article['content'].get('body')
+    except KeyError as e:
+        print "Malformed article in DB!: "
+        print e
+
 def cluster_items(items, eps = 0.5):
-    bodies = map(lambda x: x['content'].get('body'), items)
+    if not items:
+        return []
+    bodies = map(get_bodies, items)
     return dbscan(bodies, eps)
 
 def make_cluster_number(num, prefix):
@@ -18,11 +28,12 @@ def make_cluster_updates(items, clusters, prefix):
                  for item, c in zipped]
     return requests
 
-def cluster_updates(client):
-    tweets = get_all_tweets(client)
-    articles = get_all_articles(client)
-
-    tw_updates = make_cluster_updates(tweets, cluster_items(tweets), T_PREFIX)
-    art_updates = make_cluster_updates(articles, cluster_items(articles), A_PREFIX)
-
-    return tw_updates + art_updates
+def cluster_updates(collection):
+    sources = [
+        ('ge', A_PREFIX),
+        ('fa', A_PREFIX),
+        ('tw', T_PREFIX)
+    ]
+    articles = [(get_articles(collection, src = re), pf) for re,pf in sources]
+    updates = [make_cluster_updates(a, cluster_items(a), pf) for a,pf in articles]
+    return [x for u in updates for x in u]
