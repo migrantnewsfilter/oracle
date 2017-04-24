@@ -28,12 +28,13 @@ def make_cluster_updates(items, clusters, prefix):
                  for item, c in zipped]
     return requests
 
-def cluster_updates(collection):
+def cluster_updates(collection, get_from):
     sources = [
         ('ge', A_PREFIX),
         ('fa', A_PREFIX),
         ('tw', T_PREFIX)
     ]
-    articles = [(get_articles(collection, src = re), pf) for re,pf in sources]
+    articles = [(get_articles(collection, src = re, date_start = get_from), pf)
+                for re,pf in sources]
     updates = [make_cluster_updates(a, cluster_items(a), pf) for a,pf in articles]
     return [x for u in updates for x in u]
