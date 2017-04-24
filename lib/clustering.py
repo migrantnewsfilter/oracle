@@ -7,10 +7,11 @@ T_PREFIX = 20000
 
 def get_bodies(article):
     try:
-        return article['content'].get('body')
+        body =  article['content']['body']
     except KeyError as e:
         print "Malformed article in DB!: "
-        print e
+        return None
+    return body
 
 def cluster_items(items, eps = 0.5):
     if not items:
@@ -19,7 +20,7 @@ def cluster_items(items, eps = 0.5):
     return dbscan(bodies, eps)
 
 def make_cluster_number(num, prefix):
-    return 0 if num == -1 else num + prefix
+    return 0 if num == (-1 or 0) else num + prefix
 
 def make_cluster_updates(items, clusters, prefix):
     zipped = zip(items, clusters)

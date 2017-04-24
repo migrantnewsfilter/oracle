@@ -2,6 +2,7 @@ from predictions import write_predictions, write_clusters
 from mock import patch, MagicMock
 from mongomock import MongoClient
 from pymongo import UpdateOne
+from datetime import datetime
 
 def test_write_predictions():
     model = MagicMock()
@@ -10,11 +11,11 @@ def test_write_predictions():
     with patch('lib.predictions.create_model', create_model) as create_model:
         collection = MongoClient().db.collection
         collection.insert_many([
-            {'_id': 'tw:abc', 'content': {'body': 'foo'}, 'label': 'shite'},
-            {'_id': 'tw:cde', 'content': {'body': 'bar'}}
+            {'_id': 'tw:abc', 'content': {'body': 'foo'}, 'label': 'shite', 'added': datetime.utcnow()},
+            {'_id': 'tw:cde', 'content': {'body': 'bar'}, 'added': datetime.utcnow()}
         ])
         collection.bulk_write = MagicMock()
-        write_predictions(collection)
+        write_predictions(collection, datetime(1970,1,1))
         create_model.assert_called_once_with(['foo'], ['shite'])
         model.predict_proba.assert_called_once()
         updates = collection.bulk_write.call_args[0][0]
@@ -30,10 +31,10 @@ def test_write_predictions_create_model_exception():
     with patch('lib.predictions.create_model', create_model) as create_model:
         collection = MongoClient().db.collection
         collection.insert_many([
-            {'_id': 'tw:cde', 'content': {'body': 'bar'}}
+            {'_id': 'tw:cde', 'content': {'body': 'bar'}, 'added': datetime.utcnow()}
         ])
         collection.bulk_write = MagicMock()
-        write_predictions(collection)
+        write_predictions(collection, datetime(1970,1,1))
         create_model.assert_called_once_with([], [])
         model.predict_proba.assert_not_called()
         collection.bulk_write.assert_not_called()
