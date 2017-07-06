@@ -36,7 +36,7 @@ def get_model(collection):
     l = get_articles(collection, label = True)
     labels = map(lambda x: x['label'], l)
     bodies = map(lambda x: x['content']['body'], l)
-    return create_model(bodies, labels)
+    return create_model(bodies, labels, [0.5,0.5])
 
 def write_predictions(collection, get_from):
     # If we can't make a model, don't write any predictions
