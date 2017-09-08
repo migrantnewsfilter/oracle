@@ -51,6 +51,7 @@ def write_predictions(collection, get_from):
     chunked = chunk(200, predicted)
 
     for c in chunked:
+        logger.info("Writing prediction update to DB")
         requests = [ UpdateOne({ '_id': obj['_id']},
                                {'$set': { 'prediction': obj['prediction'] }})
                      for obj in c ]
@@ -60,4 +61,5 @@ def write_clusters(collection, get_from):
     updates = cluster_updates(collection, get_from)
     chunked = chunk(200, updates)
     for c in chunked:
+        logger.info("Writing cluster update to DB")
         collection.bulk_write(c, ordered = False)
