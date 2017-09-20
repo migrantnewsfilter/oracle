@@ -4,6 +4,8 @@ from pymongo import UpdateOne
 import math
 from modelling.models import create_model
 from modelling.utils import get_articles
+from modelling.clustering import get_unique_items
+from modelling.fetch import create_df, get_labelled_articles
 from clustering import cluster_updates
 
 # TODO: cleanup and make propper logging ini config!
@@ -33,10 +35,13 @@ def predict_item(item, model):
     return assoc(item, 'prediction', prediction)
 
 def get_model(collection):
-    l = get_articles(collection, label = True)
-    labels = map(lambda x: x['label'], l)
-    bodies = map(lambda x: x['content']['body'], l)
-    return create_model(bodies, labels, [0.5,0.5])
+    lookup = [('ge', 0.1, 'title'),
+              ('tw', 0.5, 'body'),
+              ('fa', 0.1, 'body')]
+    df = create_df(get_articles(collection, label=True))
+    unique = pd.concat([get_unique_items(df[df._id.str.contains(p)], i, k)
+                        for p,i,k in lookup])
+    return create_model(unique.body, unique.label, [0.5,0.5])
 
 def write_predictions(collection, get_from):
     # If we can't make a model, don't write any predictions
