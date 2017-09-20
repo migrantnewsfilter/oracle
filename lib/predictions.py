@@ -1,6 +1,7 @@
 from itertools import islice, takewhile, count
 from toolz import assoc
 from pymongo import UpdateOne
+import pandas as pd
 import math
 from modelling.models import create_model
 from modelling.utils import get_articles
