@@ -5,11 +5,17 @@ from modelling.utils import get_articles
 A_PREFIX = 10000
 T_PREFIX = 20000
 
+import logging
+logger = logging.getLogger()
+ch = logging.StreamHandler()
+ch.setLevel(logging.INFO)
+logger.addHandler(ch)
+
 def get_bodies(article):
     try:
         body =  article['content']['body']
     except KeyError as e:
-        print "Malformed article in DB!: "
+        logger.error('Malformed article in DB!: ', e)
         return None
     return body
 
