@@ -7,7 +7,7 @@ from modelling.models import create_model
 from modelling.utils import get_articles
 from modelling.clustering import get_unique_items
 from modelling.fetch import create_df, get_labelled_articles
-from clustering import cluster_updates
+from .clustering import cluster_updates
 
 # TODO: cleanup and make propper logging ini config!
 import logging
