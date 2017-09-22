@@ -29,6 +29,7 @@ def predict_item(item, model):
     return assoc(item, 'prediction', prediction)
 
 def get_model(collection):
+    logging.debug('Getting model for prediction')
     lookup = [('ge', 0.1, 'title'),
               ('tw', 0.5, 'body'),
               ('fa', 0.1, 'body')]
@@ -45,6 +46,7 @@ def write_predictions(collection, get_from):
         logging.exception("Error creating model for predictions.")
         return
 
+    logging.debug('Predicting items.')
     unlabelled = get_articles(collection, label = False, date_start = get_from)
     predicted = (predict_item(item, model) for item in unlabelled)
     chunked = chunk(200, predicted)
