@@ -1,25 +1,21 @@
 from pymongo import UpdateOne
 from modelling.clustering import dbscan
 from modelling.utils import get_articles
+import logging
 
 A_PREFIX = 10000
 T_PREFIX = 20000
-
-import logging
-logger = logging.getLogger()
-ch = logging.StreamHandler()
-ch.setLevel(logging.INFO)
-logger.addHandler(ch)
 
 def get_bodies(article):
     try:
         body =  article['content']['body']
     except KeyError as e:
-        logger.error('Malformed article in DB!: ', e)
+        logging.error('Malformed article in DB!: ', e)
         return None
     return body
 
 def cluster_items(items, eps = 0.5):
+    logging.debug('Clustering {} items...'.format(len(items)))
     if not items:
         return []
     bodies = map(get_bodies, items)

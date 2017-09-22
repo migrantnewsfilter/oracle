@@ -8,14 +8,7 @@ from modelling.utils import get_articles
 from modelling.clustering import get_unique_items
 from modelling.fetch import create_df, get_labelled_articles
 from .clustering import cluster_updates
-
-# TODO: cleanup and make propper logging ini config!
 import logging
-logger = logging.getLogger()
-ch = logging.StreamHandler()
-ch.setLevel(logging.INFO)
-logger.addHandler(ch)
-
 
 def chunk(n, it):
     src = iter(it)
@@ -49,7 +42,7 @@ def write_predictions(collection, get_from):
     try:
         model = get_model(collection)
     except Exception:
-        logger.exception("Error creating model for predictions.")
+        logging.exception("Error creating model for predictions.")
         return
 
     unlabelled = get_articles(collection, label = False, date_start = get_from)
@@ -57,7 +50,7 @@ def write_predictions(collection, get_from):
     chunked = chunk(200, predicted)
 
     for c in chunked:
-        logger.info("Writing prediction update to DB")
+        logging.debug("Writing prediction update to DB")
         requests = [ UpdateOne({ '_id': obj['_id']},
                                {'$set': { 'prediction': obj['prediction'] }})
                      for obj in c ]
@@ -67,5 +60,5 @@ def write_clusters(collection, get_from):
     updates = cluster_updates(collection, get_from)
     chunked = chunk(200, updates)
     for c in chunked:
-        logger.info("Writing cluster update to DB")
+        logging.debug("Writing cluster update to DB")
         collection.bulk_write(c, ordered = False)
