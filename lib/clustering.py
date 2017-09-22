@@ -37,7 +37,7 @@ def cluster_updates(collection, get_from):
         ('fa', A_PREFIX),
         ('tw', T_PREFIX)
     ]
-    articles = [(get_articles(collection, src = re, date_start = get_from), pf)
-                for re,pf in sources]
-    updates = [make_cluster_updates(a, cluster_items(a), pf) for a,pf in articles]
-    return [x for u in updates for x in u]
+    articles = ((get_articles(collection, src = re, date_start = get_from), pf)
+                for re,pf in sources)
+    updates = (make_cluster_updates(a, cluster_items(a), pf) for a,pf in articles)
+    return (x for u in updates for x in u)
