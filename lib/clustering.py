@@ -22,7 +22,9 @@ def cluster_items(items, eps = 0.5):
     return dbscan(bodies, eps)
 
 def make_cluster_number(num, prefix):
-    return 0 if num == (-1 or 0) else num + prefix
+
+    # num will by numpy.int64, which we cast to int
+    return 0 if num == (-1 or 0) else int(num + prefix)
 
 def make_cluster_updates(items, clusters, prefix):
     zipped = zip(items, clusters)
