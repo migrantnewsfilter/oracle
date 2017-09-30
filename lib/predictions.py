@@ -28,13 +28,24 @@ def predict_item(item, model):
     prediction = normalize_prediction(make_prediction(item, model))
     return assoc(item, 'prediction', prediction)
 
+def get_unique(df, i, k):
+    try:
+        return get_unique_items(df, i, k)
+    except ValueError:
+        return None
+
 def get_model(collection):
     logging.debug('Getting model for prediction')
     lookup = [('ge', 0.1, 'title'),
               ('tw', 0.5, 'body'),
               ('fa', 0.1, 'body')]
-    df = create_df(get_articles(collection, label=True))
-    unique = pd.concat([get_unique_items(df[df._id.str.contains(p)], i, k)
+    articles = get_articles(collection, label =True)
+
+    if not articles:
+        raise Exception('Could not find any labelled articles in Database')
+
+    df = create_df(articles)
+    unique = pd.concat([get_unique(df[df._id.str.contains(p)], i, k)
                         for p,i,k in lookup])
     return create_model(unique.body, unique.label, [0.5,0.5])
 
@@ -42,8 +53,8 @@ def write_predictions(collection, get_from):
     # If we can't make a model, don't write any predictions
     try:
         model = get_model(collection)
-    except Exception:
-        logging.exception("Error creating model for predictions.")
+    except Exception as e:
+        logging.exception('Error creating model for predictions: {}'.format(e))
         return
 
     logging.debug('Predicting items.')

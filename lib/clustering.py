@@ -1,6 +1,8 @@
 from pymongo import UpdateOne
 from modelling.clustering import dbscan
 from modelling.utils import get_articles
+from sklearn.cluster import DBSCAN
+from itertools import chain
 import logging
 
 A_PREFIX = 10000
@@ -10,7 +12,7 @@ def get_bodies(article):
     try:
         body =  article['content']['body']
     except KeyError as e:
-        logging.error('Malformed article in DB!: ', e)
+        # logging.error('Malformed article in DB!: ', e)
         return None
     return body
 
@@ -19,7 +21,8 @@ def cluster_items(items, eps = 0.5):
     if not items:
         return []
     bodies = map(get_bodies, items)
-    return dbscan(bodies, eps)
+    db = DBSCAN(eps, min_samples = 2, algorithm = 'brute', metric = 'cosine')
+    return dbscan(bodies, db)
 
 def make_cluster_number(num, prefix):
 
@@ -33,13 +36,20 @@ def make_cluster_updates(items, clusters, prefix):
                  for item, c in zipped]
     return requests
 
+def make_cluster_removal(item):
+    return UpdateOne({ '_id': item['_id']},
+                     {'$set': { 'cluster': 0 }})
+
 def cluster_updates(collection, get_from):
     sources = [
         ('ge', A_PREFIX, 0.5),
         ('fa', A_PREFIX, 0.5),
-        ('tw', T_PREFIX, 0.25)
+        ('tw', T_PREFIX, 0.2)
     ]
     articles = ((get_articles(collection, src = re, date_start = get_from),pf,e)
                 for re,pf,e in sources)
+    old_articles = get_articles(collection, date_end = get_from)
+    removals = (make_cluster_removal(a) for a in old_articles)
     updates = (make_cluster_updates(a, cluster_items(a,e), pf) for a,pf,e in articles)
-    return (x for u in updates for x in u)
+    updates = (x for u in updates for x in u)
+    return chain(updates, removals)
