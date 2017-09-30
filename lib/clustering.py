@@ -4,6 +4,7 @@ from modelling.utils import get_articles
 from sklearn.cluster import DBSCAN
 from itertools import chain
 import logging
+import os
 
 A_PREFIX = 10000
 T_PREFIX = 20000
@@ -42,9 +43,9 @@ def make_cluster_removal(item):
 
 def cluster_updates(collection, get_from):
     sources = [
-        ('ge', A_PREFIX, 0.5),
+        ('ge', A_PREFIX, os.environ.get('ORACLE_GE_EPS') or 0.5),
         ('fa', A_PREFIX, 0.5),
-        ('tw', T_PREFIX, 0.2)
+        ('tw', T_PREFIX, os.environ.get('ORACLE_TW_EPS') or 0.5)
     ]
     articles = ((get_articles(collection, src = re, date_start = get_from),pf,e)
                 for re,pf,e in sources)
