@@ -35,11 +35,11 @@ def get_unique(df, i, k):
         return None
 
 def get_model(collection):
-    logging.debug('Getting model for prediction')
+    logging.debug('Getting data for model for prediction')
     lookup = [('ge', 0.1, 'title'),
               ('tw', 0.5, 'body'),
               ('fa', 0.1, 'body')]
-    articles = get_articles(collection, label =True)
+    articles = get_articles(collection, label = True)
 
     if not articles:
         raise Exception('Could not find any labelled articles in Database')
@@ -47,6 +47,7 @@ def get_model(collection):
     df = create_df(articles)
     unique = pd.concat([get_unique(df[df._id.str.contains(p)], i, k)
                         for p,i,k in lookup])
+    logging.debug('Creating model for prediction')
     return create_model(unique.body, unique.label, [0.5,0.5])
 
 def write_predictions(collection, get_from):
