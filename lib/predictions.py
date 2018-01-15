@@ -5,7 +5,7 @@ import pandas as pd
 import math
 from modelling.models import create_model
 from modelling.utils import get_articles
-from modelling.clustering import get_unique_items
+# from modelling.clustering import get_unique_items
 from modelling.fetch import create_df, get_labelled_articles
 from .clustering import cluster_updates
 import logging
@@ -28,27 +28,22 @@ def predict_item(item, model):
     prediction = normalize_prediction(make_prediction(item, model))
     return assoc(item, 'prediction', prediction)
 
-def get_unique(df, i, k):
-    try:
-        return get_unique_items(df, i, k)
-    except ValueError:
-        return None
-
 def get_model(collection):
     logging.debug('Getting data for model for prediction')
-    lookup = [('ge', 0.1, 'title'),
-              ('tw', 0.5, 'body'),
-              ('fa', 0.1, 'body')]
-    articles = get_articles(collection, label = True)
 
+    # TODO: ge --> with title or body??
+    lookup = [('ge', 'title'),
+              ('tw', 'body'),
+              ('fa', 'body')]
+
+    articles = get_articles(collection, label = True, unique = True)
+    articles = list(articles)
     if not articles:
         raise Exception('Could not find any labelled articles in Database')
 
     df = create_df(articles)
-    unique = pd.concat([get_unique(df[df._id.str.contains(p)], i, k)
-                        for p,i,k in lookup])
     logging.debug('Creating model for prediction')
-    return create_model(unique.body, unique.label, [0.5,0.5])
+    return create_model(df.body, df.label, [0.5,0.5])
 
 def write_predictions(collection, get_from):
     # If we can't make a model, don't write any predictions
@@ -59,7 +54,7 @@ def write_predictions(collection, get_from):
         return
 
     logging.debug('Predicting items.')
-    unlabelled = get_articles(collection, label = False, date_start = get_from)
+    unlabelled = get_articles(collection, label = False, date_start = get_from, unique = True)
     predicted = (predict_item(item, model) for item in unlabelled)
     chunked = chunk(200, predicted)
 
