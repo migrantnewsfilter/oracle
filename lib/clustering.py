@@ -46,8 +46,8 @@ def make_cluster_removal(item):
 
 def cluster_updates(collection, get_from, window = 7):
     sources = [
-        ('ge', os.environ.get('ORACLE_GE_EPS') or 0.5, 'title'),
-        ('fa', 0.5, 'body'),
+        ('ge', os.environ.get('ORACLE_GE_EPS') or 0.1, 'title'),
+        ('fa', 0.2, 'title'),
         ('tw', os.environ.get('ORACLE_TW_EPS') or 0.5, 'body')
     ]
 

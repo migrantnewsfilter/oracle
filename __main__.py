@@ -10,8 +10,9 @@ if __name__ == '__main__':
     client = MongoClient(host = os.environ.get('MONGO_HOST') or None)
     collection = client['newsfilter'].news
     cluster_weeks = os.environ.get('ORACLE_CLUSTER_WEEKS') or 3
+    cluster_window = os.environ.get('ORACLE_CLUSTER_WINDOW') or 7
     cluster_from = datetime.utcnow()- timedelta(weeks = float(cluster_weeks))
     predict_from = datetime.utcnow() - timedelta(weeks = 3)
     write_predictions(collection, predict_from)
-    write_clusters(collection, cluster_from)
+    write_clusters(collection, cluster_from, float(cluster_window))
     client.close()
