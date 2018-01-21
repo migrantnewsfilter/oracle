@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 
 def test_cluster_updates_with_empty_db():
     collection = MongoClient().db.collection
-    u = cluster_updates(collection, datetime(1970,1,1))
+    u = cluster_updates(collection, datetime(1970,1,1), datetime.utcnow())
     assert list(u) == []
 
 m = MagicMock(return_value = [2])
@@ -17,7 +17,9 @@ def test_cluster_updates():
         { '_id': 'tw:abc', 'content': {'body': 'foo'}, 'published': datetime.utcnow(), 'added': datetime.utcnow()},
         { '_id': 'ge:abc', 'content': {'body': 'foo', 'title': 'foo'}, 'published': datetime.utcnow(), 'added': datetime.utcnow()}
     ])
-    u = list(cluster_updates(collection, datetime.utcnow() - timedelta(days = 14)))
+    u = list(cluster_updates(collection,
+                             datetime.utcnow() - timedelta(days = 14),
+                             datetime.utcnow()))
     assert u[0]._doc == {'$set': {'cluster': 'acbd18db4cc2f85cedef654fccc4a4d8'}}
     assert u[1]._doc == {'$set': {'cluster': 'acbd18db4cc2f85cedef654fccc4a4d8'}}
     assert len(u) == 2
@@ -30,7 +32,9 @@ def test_cluster_updates_with_malformed_data():
     ])
 
     # malformed data doesn't get a cluster. Both updates are from well-formed item
-    u = list(cluster_updates(collection, datetime.utcnow() - timedelta(weeks = 12)))
+    u = list(cluster_updates(collection,
+                             datetime.utcnow() - timedelta(weeks = 12),
+                             datetime.utcnow() + timedelta(hours = 1)))
     assert len(u) == 2
     assert(u[0]._filter['_id'] == 'ge:abc')
     assert(u[1]._filter['_id'] == 'ge:abc')
