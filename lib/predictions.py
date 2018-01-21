@@ -20,7 +20,7 @@ def normalize_prediction(prediction):
 def write_predictions(collection, get_from):
     # If we can't make a model, don't write any predictions
     X_train, y_train, _ = get_prediction_data(collection, label=True)
-    X_new, _, ids = get_prediction_data(collection, label=True, start=get_from)
+    X_new, _, ids = get_prediction_data(collection, label=False, start=get_from)
 
     logging.debug('Predicting {} items from training size {}'.format(len(X_new), len(X_train)))
     try:

@@ -17,11 +17,12 @@ def collection():
 
 
 def test_write_predictions_creates_model_and_writes_only_unlabelled(collection):
-    m = MagicMock(return_value = np.array([.34]))
+    m = MagicMock(return_value = np.array([.34, .5]))
     with patch('lib.predictions.train_and_predict', m) as tp:
         collection.insert_many([
             {'_id': 'tw:abc', 'title': None, 'content': {'body': 'foo goes to a bar'}, 'label': 'accepted', 'added': datetime.utcnow()},
-            {'_id': 'tw:cde', 'title': None, 'content': {'body': 'bar walks down the street'}, 'added': datetime.utcnow()}
+            {'_id': 'tw:cde', 'title': None, 'content': {'body': 'bar walks down the street'}, 'added': datetime.utcnow()},
+            {'_id': 'tw:efg', 'title': None, 'content': {'body': 'bar too town'}, 'added': datetime.utcnow()}
         ])
         collection.bulk_write = MagicMock()
         write_predictions(collection, datetime(1970,1,1))
@@ -29,8 +30,9 @@ def test_write_predictions_creates_model_and_writes_only_unlabelled(collection):
         assert model_data[0].values == ['foo goes to a bar']
         assert model_data[1].values == [True]
         updates = collection.bulk_write.call_args[0][0]
-        assert len(updates) == 1
+        assert len(updates) == 2
         assert updates[0]._doc['$set'] == {'prediction': 3}
+        assert updates[1]._doc['$set'] == {'prediction': 5}
         collection.drop()
 
 
