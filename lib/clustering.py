@@ -44,7 +44,7 @@ def make_cluster_removal(item):
     return UpdateOne({ '_id': item['_id']},
                      {'$set': { 'cluster': 0 }})
 
-def cluster_updates(collection, get_from, window = 7):
+def cluster_updates(collection, start, end, window = 7):
     sources = [
         ('ge', os.environ.get('ORACLE_GE_EPS') or 0.1, 'title'),
         ('fa', 0.2, 'title'),
@@ -53,7 +53,7 @@ def cluster_updates(collection, get_from, window = 7):
 
     # get windows per source
     articles = ((list(a),e,b) for re,e,b in sources for a in
-                get_windowed_articles(collection, window, src=re, start=get_from))
+                get_windowed_articles(collection, window, src=re, start=start, end=end))
     updates = (make_cluster_updates(a, cluster_articles(a,e,b)) for a,e,b in articles)
     updates = (x for u in updates for x in u)
     return updates
