@@ -22,7 +22,7 @@ def write_predictions(collection, get_from):
     X_train, y_train, _ = get_prediction_data(collection, label=True)
     X_new, _, ids = get_prediction_data(collection, label=True, start=get_from)
 
-    logging.debug('Predicting items.')
+    logging.debug('Predicting {} items from training size {}'.format(len(X_new), len(X_train)))
     try:
         preds = train_and_predict(X_train, y_train, X_new)
     except Exception as e:
