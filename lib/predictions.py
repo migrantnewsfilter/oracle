@@ -37,8 +37,8 @@ def write_predictions(collection, get_from):
                      for i,p in c ]
         collection.bulk_write(requests, ordered = False)
 
-def write_clusters(collection, get_from, cluster_window):
-    updates = cluster_updates(collection, get_from, cluster_window)
+def write_clusters(collection, start, end, cluster_window):
+    updates = cluster_updates(collection, start, end, cluster_window)
     chunked = chunk(200, updates)
     for c in chunked:
         logging.debug("Writing cluster update to DB")
