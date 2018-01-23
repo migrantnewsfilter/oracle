@@ -36,6 +36,7 @@ def write_predictions(collection, get_from):
                                {'$set': { 'prediction': p }})
                      for i,p in c ]
         collection.bulk_write(requests, ordered = False)
+    logging.debug("Finished writing predictions to DB")
 
 def write_clusters(collection, start, end, cluster_window):
     updates = cluster_updates(collection, start, end, cluster_window)
@@ -43,3 +44,4 @@ def write_clusters(collection, start, end, cluster_window):
     for c in chunked:
         logging.debug("Writing cluster update to DB")
         collection.bulk_write(c, ordered = False)
+    logging.debug("Finished writing cluster updates to DB")
