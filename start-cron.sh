@@ -1,0 +1,1 @@
+hyper cron create --minute=13 --hour=* --name oracle --env MONGO_HOST=mongodb://mongo:27017 --env ORACLE_CLUSTER_WINDOW=3 --env ORACLE_CLUSTER_START=2 --link news-mongo-1:mongo --size l3 migrantnewsfilter/oracle
